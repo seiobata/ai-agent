@@ -2,7 +2,7 @@ import os
 import os.path as path
 from subprocess import run
 
-def run_python_file(working_directory, file_path):
+def run_python_file(working_directory, file_path, args=None):
     work_dir = path.abspath(working_directory)
     file = path.abspath(path.join(work_dir, file_path))
     if not file.startswith(work_dir + os.sep):
@@ -13,8 +13,12 @@ def run_python_file(working_directory, file_path):
     if extension != ".py":
         return f'Error: "{file_path}" is not a Python file.'
     
+    commands = ["python", file]
+    if args:
+        commands.extend(args)
+
     try:
-        process = run(["python", file_path], text=True, timeout=30, capture_output=True, cwd=work_dir)
+        process = run(commands, text=True, timeout=30, capture_output=True, cwd=work_dir)
     except Exception as e:
         return f'Error: executing Python file: {e}'
     
