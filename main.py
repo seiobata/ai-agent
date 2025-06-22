@@ -1,10 +1,13 @@
 import os
 import sys
+
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
+
 from prompts import system_prompt
 from declare_functions import available_functions
+from functions.call_function import call_function
 
 def main():
     load_dotenv()
@@ -43,9 +46,14 @@ def generate_content(client, messages, verbose):
     if verbose:
         print("Prompt tokens:", res.usage_metadata.prompt_token_count)
         print("Response tokens:", res.usage_metadata.candidates_token_count)
+        
     if res.function_calls:
         for func_call in res.function_calls:
-            print(f'Calling function: {func_call.name}({func_call.args})')
+            result = call_function(func_call, verbose)
+            if not result.parts[0].function_response.response:
+                raise ValueError("function call missing response")
+            if verbose:
+                print(f"-> {result.parts[0].function_response.response}")
     else:
         print(res.text)
 
