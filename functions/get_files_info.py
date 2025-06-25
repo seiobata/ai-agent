@@ -3,7 +3,9 @@ import os.path as path
 
 def get_files_info(working_directory, directory=None):
     work_dir = path.abspath(working_directory)
-    current_dir = path.abspath(path.join(working_directory, directory))
+    current_dir = work_dir
+    if directory:
+        current_dir = path.abspath(path.join(work_dir, directory))
     if not (current_dir == work_dir or current_dir.startswith(work_dir + os.sep)):
         return f'Error: Cannot list "{directory}" as it is outside the permitted working directory'
     if not path.isdir(current_dir):

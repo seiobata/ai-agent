@@ -31,7 +31,24 @@ def main():
 
     if verbose:
         print("User prompt:", prompt)
-    generate_content(client, messages, verbose)
+
+    i = 0
+    while i < 20:
+        i += 1
+        
+        try:
+            final = generate_content(client, messages, verbose)
+        except Exception as e:
+            print(f'Error in generate_content: {e}')
+            sys.exit(1)
+
+        if final:
+            print("Final response:")
+            print(final)
+            break
+        if i == 20:
+            print(f"Maximum iterations (20) reached.")
+            sys.exit(1)
 
 def generate_content(client, messages, verbose):
     res = client.models.generate_content(
@@ -43,6 +60,10 @@ def generate_content(client, messages, verbose):
         )
     )
 
+    if res.candidates:
+        for candidate in res.candidates:
+            messages.append(candidate.content)
+
     if verbose:
         print("Prompt tokens:", res.usage_metadata.prompt_token_count)
         print("Response tokens:", res.usage_metadata.candidates_token_count)
@@ -50,12 +71,13 @@ def generate_content(client, messages, verbose):
     if res.function_calls:
         for func_call in res.function_calls:
             result = call_function(func_call, verbose)
+            messages.append(result)
             if not result.parts[0].function_response.response:
                 raise ValueError("function call missing response")
             if verbose:
                 print(f"-> {result.parts[0].function_response.response}")
     else:
-        print(res.text)
+        return res.text
 
 if __name__ == "__main__":
     main()
